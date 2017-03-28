@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Zthxxx&#39;s Wiki</title>
+  <subtitle>知识不能碎片化，要结构化</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://wiki.zthxxx.me/"/>
+  <updated>2017-03-25T02:47:45.634Z</updated>
+  <id>http://wiki.zthxxx.me/</id>
+  
+  <author>
+    <name>zthxxx</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>gulp-imagemin 使用与参数设置</title>
+    <link href="http://wiki.zthxxx.me/wiki/%E6%8A%80%E6%9C%AF%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF/gulp-imagemin-%E4%BD%BF%E7%94%A8%E4%B8%8E%E5%8F%82%E6%95%B0%E8%AE%BE%E7%BD%AE/"/>
+    <id>http://wiki.zthxxx.me/wiki/技术开发/前端/gulp-imagemin-使用与参数设置/</id>
+    <published>2017-02-03T05:50:52.000Z</published>
+    <updated>2017-03-25T02:47:45.634Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="使用版本"><a href="#使用版本" class="headerlink" title="使用版本"></a>使用版本</h3><ul>
+<li><strong>gulp</strong> : v3.9.1</li>
+<li><strong>gulp-imagemin</strong> : v3.1.1</li>
+</ul>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>gulp-imagemin 是配合 gulp 用作压缩图片文件的工具（包括PNG、JPEG、GIF和SVG图片）。</p>
+<p><strong>gulp-imagemin 更新 v3.0.0 版本后，用法与之前版本有所区别。</strong></p>
+<p>最近我一开始使用的时候就在网上搜索，看到很多博客都讲得一样，于是随便复制了一段代码拿来用。但是实际测试发现，这段代码里设置的参数并没有起作用，比如不管怎样设置压缩质量，出来的结果都一样。于是开始调试，通过阅读源码和官方文档后，我发现目前<strong>国内网上关于 gulp-imagemin 的代码大部分都是错的</strong>，并且明显看得出是相互抄袭复制的。或者也不能说是错了——没有注明版本，原来的代码用在目前的版本（v3.1.1）上就是错的。</p>
+<p>我摘抄了一则 gulp-imagemin 网上常见的<strong>错误代码</strong> 如下：（<strong>注意是对 v3.0.0 及以上版本的错误代码，对 v2.4.0 版本可能正确。</strong>）</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 只适用于gulp-imagemin 2.4.0 或以下版本</span></div><div class="line"><span class="keyword">var</span> gulp = <span class="built_in">require</span>(<span class="string">'gulp'</span>),</div><div class="line">    imagemin = <span class="built_in">require</span>(<span class="string">'gulp-imagemin'</span>);</div><div class="line"> </div><div class="line">gulp.task(<span class="string">'testImagemin'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">    gulp.src(<span class="string">'src/img/*.&#123;png,jpg,gif,ico&#125;'</span>)</div><div class="line">        .pipe(imagemin(&#123;</div><div class="line">            <span class="attr">optimizationLevel</span>: <span class="number">5</span>, <span class="comment">//类型：Number  默认：3  取值范围：0-7（优化等级）</span></div><div class="line">            progressive: <span class="literal">true</span>, <span class="comment">//类型：Boolean 默认：false 无损压缩jpg图片</span></div><div class="line">            interlaced: <span class="literal">true</span>, <span class="comment">//类型：Boolean 默认：false 隔行扫描gif进行渲染</span></div><div class="line">            multipass: <span class="literal">true</span> <span class="comment">//类型：Boolean 默认：false 多次优化svg直到完全优化</span></div><div class="line">        &#125;))</div><div class="line">        .pipe(gulp.dest(<span class="string">'dist/img'</span>));</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>上段代码出处：<a href="http://www.ydcss.com/archives/26" rel="external nofollow noopener noreferrer" target="_blank">gulp教程之gulp-imagemin | 一点</a></p>
+<p>且不说 <code>progressive: true</code> 的意思应该是“转为<a href="/wiki/计算机基础知识/图形图像/渐进式-JPEG-格式/">渐进式</a>图片”，这段代码在 gulp-imagemin v3.0.0 之后就不正确了，主要体现在 <code>imagemin(option)</code> 的参数设置。</p>
+<p>目前网上没有找到几个 3.0.0 之后版本的示例代码，于是我自己去查看<a href="https://github.com/sindresorhus/gulp-imagemin/blob/master/readme.md" rel="external nofollow noopener noreferrer" target="_blank">官方 API 说明</a>，这里摘抄一段如下：</p>
+<blockquote>
+<p><a href="https://github.com/sindresorhus" rel="external nofollow noopener noreferrer" target="_blank">sindresorhus</a> committed on 12 Aug 2016</p>
+<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><p>Comes bundled with the following <strong>lossless</strong> optimizers:</p>
+<ul>
+<li><a href="https://github.com/imagemin/imagemin-gifsicle" rel="external nofollow noopener noreferrer" target="_blank">gifsicle</a> — <em>Compress GIF images</em></li>
+<li><a href="https://github.com/imagemin/imagemin-jpegtran" rel="external nofollow noopener noreferrer" target="_blank">jpegtran</a> — <em>Compress JPEG images</em></li>
+<li><a href="https://github.com/imagemin/imagemin-optipng" rel="external nofollow noopener noreferrer" target="_blank">optipng</a> — <em>Compress PNG images</em></li>
+<li><a href="https://github.com/imagemin/imagemin-svgo" rel="external nofollow noopener noreferrer" target="_blank">svgo</a> — <em>Compress SVG images</em></li>
+</ul>
+<p>These are bundled for convenience and most will not need anything else.</p>
+<h3 id="imagemin-plugins-options"><a href="#imagemin-plugins-options" class="headerlink" title="imagemin([plugins], [options])"></a>imagemin([plugins], [options])</h3><p>Unsupported files are ignored.</p>
+<h4 id="plugins"><a href="#plugins" class="headerlink" title="plugins"></a>plugins</h4><p>Type: <code>Array</code><br>Default: <code>[imagemin.gifsicle(), imagemin.jpegtran(), imagemin.optipng(), imagemin.svgo()]</code></p>
+<p><a href="https://www.npmjs.com/browse/keyword/imageminplugin" rel="external nofollow noopener noreferrer" target="_blank">Plugins</a> to use. This will overwrite the default plugins. Note that the default plugins comes with good defaults and should be sufficient in most cases. See the individual plugins for supported options.</p>
+<h4 id="options"><a href="#options" class="headerlink" title="options"></a>options</h4><p>Type: <code>Object</code></p>
+<h5 id="verbose"><a href="#verbose" class="headerlink" title="verbose"></a>verbose</h5><p>Type: <code>boolean</code><br>Default: <code>false</code></p>
+<p>Output more detailed information.</p>
+</blockquote>
+<p>可以看到 <code>options</code> 项只有一个项 <code>verbose</code>，用于输出详细信息，而不是像上面那段代码的 <code>optimizationLevel</code> <code>interlaced</code> 等项。</p>
+<p>在四个默认插件的 API 文档中又能进一步找到参数说明。</p>
+<p>根据官方 API 文档，我这里给出我的示例代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// gulp-imagemin v3.0.0 及以上版本</span></div><div class="line"><span class="keyword">const</span> gulp = <span class="built_in">require</span>(<span class="string">'gulp'</span>);</div><div class="line"><span class="keyword">const</span> imagemin = <span class="built_in">require</span>(<span class="string">'gulp-imagemin'</span>);</div><div class="line">gulp.task(<span class="string">'minify-imgs'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">return</span> gulp.src(<span class="string">'./public/images/**/*.&#123;png,jpg,gif,svg&#125;'</span>)</div><div class="line">        .pipe(imagemin([</div><div class="line">                imagemin.gifsicle(&#123;<span class="attr">interlaced</span>: <span class="literal">true</span>&#125;), </div><div class="line">                imagemin.jpegtran(&#123;<span class="attr">progressive</span>: <span class="literal">true</span>&#125;), </div><div class="line">                imagemin.optipng(), </div><div class="line">                imagemin.svgo()</div><div class="line">            ], &#123;<span class="attr">verbose</span>: <span class="literal">false</span>&#125;</div><div class="line">        ))</div><div class="line">        .pipe(gulp.dest(<span class="string">'./public/images'</span>))</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>以上代码仍使用四个默认 imagemin 插件，设置将 gif 转为交错式，将 jpeg 转为渐进式，png 与 svg 使用默认设置，不输出详细信息。</p>
+<p><strong>所以用某一个工具或者模块之前，应该先自己阅读一遍官方文档。</strong> 我所了解的现在人们一般学习过程是，先看博客里的入门教程，然后直接写代码，学过了入门级往深一点走，才知道遇到问题会去查官方文档。我想说，官方文档有时候确实难啃，但是如果一开始我们就看了官方文档，后面会不会少走点弯路呢？</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><blockquote>
+<ul>
+<li><a href="http://www.ydcss.com/archives/26" rel="external nofollow noopener noreferrer" target="_blank">gulp教程之gulp-imagemin</a></li>
+<li><a href="http://www.tuicool.com/articles/MVNfUbF" rel="external nofollow noopener noreferrer" target="_blank">gulp-imagemin图片压缩—-gulp系列</a></li>
+<li><a href="https://www.npmjs.com/package/gulp-imagemin/" rel="external nofollow noopener noreferrer" target="_blank">gulp-imagemin | npmjs</a></li>
+<li><a href="https://github.com/sindresorhus/gulp-imagemin" rel="external nofollow noopener noreferrer" target="_blank">sindresorhus/gulp-imagemin | GitHub</a></li>
+<li><a href="https://github.com/imagemin/imagemin-jpegtran" rel="external nofollow noopener noreferrer" target="_blank">imagemin/imagemin-jpegtran | GitHub</a></li>
+</ul>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;使用版本&quot;&gt;&lt;a href=&quot;#使用版本&quot; class=&quot;headerlink&quot; title=&quot;使用版本&quot;&gt;&lt;/a&gt;使用版本&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;gulp&lt;/strong&gt; : v3.9.1&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;gulp-ima
+    
+    </summary>
+    
+      <category term="技术开发" scheme="http://wiki.zthxxx.me/categories/%E6%8A%80%E6%9C%AF%E5%BC%80%E5%8F%91/"/>
+    
+      <category term="前端" scheme="http://wiki.zthxxx.me/categories/%E6%8A%80%E6%9C%AF%E5%BC%80%E5%8F%91/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="Nodejs" scheme="http://wiki.zthxxx.me/tags/Nodejs/"/>
+    
+      <category term="gulp" scheme="http://wiki.zthxxx.me/tags/gulp/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Welcome Zthxxx&#39;s Wiki Site</title>
+    <link href="http://wiki.zthxxx.me/wiki/index/"/>
+    <id>http://wiki.zthxxx.me/wiki/index/</id>
+    <published>2017-01-21T17:55:57.000Z</published>
+    <updated>2017-03-25T02:47:45.257Z</updated>
+    
+    <content type="html"><![CDATA[<p>这是 zthxxx 的个人 Wiki 站点，主要记录一些自己总结的只言片语的零散知识点。</p>
+<p>我一直觉得 <strong>知识不能碎片化，要结构化</strong>，于是希望寻找一种优雅的方式来管理我的知识。</p>
+<p>先后了解或尝试过 OneNote、Evernote、Blog、Wiki 等方式，总结了一套觉得比较合理的知识获取吸收管理流程：</p>
+<ol>
+<li>通过网页、RSS、微信等网络渠道作为知识获取来源。</li>
+<li>通过笔记系统（手写笔记、OneNote、Evernote）初步筛选有价值有针对性的信息，<strong>收藏</strong>信息，<strong>分类整理</strong>，做读后<strong>要点</strong>笔记记录。</li>
+<li>自己平时突然想到或总结的一两句话，或很零碎的点子、灵感，初步消化的内容，则用 <strong>Wiki</strong> 记录。</li>
+<li>最后当 Wiki 在某版块有一定量后，将这方面笔记和 Wiki 中的内容重读，整理和提炼，二次消化精炼再加上自己的感悟和理解，写成文章发表在 <strong>博客</strong> 上。</li>
+</ol>
+<p>在使用中，<strong>笔记系统</strong> 主大块信息的<strong>分类和整理</strong>，<strong>Wiki</strong> 主零碎知识的<strong>积累</strong>，而 <strong>博客</strong> 只在于 <strong>精</strong>。</p>
+<p>Wiki 中某一版块刚建时，可能只有很少内容或者就一句话，但是通过这种使用流程，日积月累，这方面的事物接触得多了，零散的知识也就多了，那么 Wiki 中这个版块记录的内容也就会变多了，也就是<strong>通过积累，把原本大量碎片化的知识结构化整理起来了</strong>。</p>
+<p>博客的目的是 <strong>分享和展示</strong>，分享自己的知识，展示自己的水平，需要放拿得出手的东西，因此不适合放碎片化的只言片语，更适合放 <strong>一个系列</strong> 的总结或者教程等，是一个十分成体系的知识平台。</p>
+<p>当我尝试部署一个自己的 Wiki 系统时，又开始纠结于选择哪个 Wiki 系统。参考网上博客，实际部署和对比比较了几个时下流行的 Wiki 系统：MediaWiki, DokuWiki, MDwiki, TiddlyWiki, wiz, vimwiki, Simiki, Wikitten 等等。都不如人意，有些是部署麻烦复杂，有些是界面太丑，有些不能分级，有些分级不能展开，有些不能搜索，还有的甚至不是用的 Markdown 。。。</p>
+<p>根据这些不算满意的使用体验，我总结整理了一下自己对于 <strong>个人 Wiki</strong> 的一些需求。</p>
+<ul>
+<li>界面简洁美观，排版字体友好</li>
+<li>支持多级分类</li>
+<li>方便修改和更新内容</li>
+<li>部署简单</li>
+<li>分类目录可展开和收缩</li>
+<li>展开分类时可查看该分类下所有文章 / 词条的标题</li>
+<li>每篇文章 / 词条能添加多个分类 / 标签</li>
+<li>Wiki 可支持引用内部链接</li>
+<li>使用 Markdown 书写文章 / 词条</li>
+<li>支持全文搜索（可搜索内容和标题）</li>
+</ul>
+<p>在之前的使用中，<a href="http://wikitten.vizuina.com/" rel="external nofollow noopener noreferrer" target="_blank">Wikiteen</a> 是最接近我需求的，但是仍然有一些条件不满足，比如部署和搜索。但是我个人比较喜欢 Wikitten 的样式。</p>
+<p>于是最终我选择了仿照 Wikitten 的样式自己写这个基于 Hexo 的 Wiki 主题 <a href="https://github.com/zthxxx/hexo-theme-Wikitten" rel="external nofollow noopener noreferrer" target="_blank">hexo-theme-Wikitten</a>，作为自己用的一套 Wiki 系统，基本实现了上述的需求。现在暂时自己用着，当然这个初步功能还很简单，后续也有一堆 Bug 和 TODO List 需要维护，欢迎有兴趣的提提 PR。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;这是 zthxxx 的个人 Wiki 站点，主要记录一些自己总结的只言片语的零散知识点。&lt;/p&gt;
+&lt;p&gt;我一直觉得 &lt;strong&gt;知识不能碎片化，要结构化&lt;/strong&gt;，于是希望寻找一种优雅的方式来管理我的知识。&lt;/p&gt;
+&lt;p&gt;先后了解或尝试过 OneNote、Eve
+    
+    </summary>
+    
+    
+  </entry>
+  
+</feed>
